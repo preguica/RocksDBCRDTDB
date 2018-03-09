@@ -14,7 +14,7 @@ func TestMvCounter(t *testing.T) {
 		keyStr = fmt.Sprintf("cnt%d", time.Now().UnixNano())
 		givenKey    = []byte(keyStr)
 	)
-	db, err := OpenCRDTMvDB("tmp/test.db")
+	db, err := OpenCRDTMvDB("tmp/test.mvdb")
 	ensure.Nil(t, err)
 	defer db.Close()
 
@@ -48,7 +48,7 @@ func TestMvCounterOp(t *testing.T) {
 		keyStr = fmt.Sprintf("cnt%d", time.Now().UnixNano())
 		givenKey    = []byte(keyStr)
 	)
-	db, err := OpenCRDTMvDB("tmp/test.db")
+	db, err := OpenCRDTMvDB("tmp/test.mvdb")
 	ensure.Nil(t, err)
 	defer db.Close()
 
