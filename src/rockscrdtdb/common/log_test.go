@@ -11,7 +11,7 @@ func TestSimpleWriteAndRead(t *testing.T) {
 		givenVal   = []byte("bar")
 	)
 
-	db, err := OpenLog("tmp/test.db", NewNullMergeOperator())
+	db, err := OpenLog("tmp/test.db", true, NewNullMergeOperator())
 	ensure.Nil(t, err)
 	defer db.Close()
 

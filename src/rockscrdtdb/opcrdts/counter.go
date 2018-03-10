@@ -29,7 +29,7 @@ func (m *Counter) ToString() string {
 	return fmt.Sprint( m.val)
 }
 
-func OpCRDT_Counter_unserialize(b []byte) (CRDT, bool) {
+func UnserializeCounter(b []byte) (CRDT, bool) {
 	if len(b) != 8 {
 		return nil,false
 	}
@@ -65,7 +65,7 @@ func (m *Counter) Add( ts *utils.Timestamp, vv *utils.VersionVector, v int64) CR
 /*
 func OpCRDT_Counter_FullMerge(key, existingValue []byte, operands [][]byte) ([]byte, bool) {
 	cnt := &Counter{}
-	obj, ok := OpCRDT_Counter_unserialize( existingValue)
+	obj, ok := UnserializeCounter( existingValue)
 	if ok {
 		cnt, ok = obj.(*Counter)
 		if ok == false {

@@ -14,3 +14,4 @@ func NewNoObjectError( key string) *NoObjectError{
 func (o *NoObjectError)Error() string {
 	return fmt.Sprintf( "Key %s does not exist", o.key)
 }
+

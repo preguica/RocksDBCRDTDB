@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"rockscrdtdb/utils"
 	"rockscrdtdb/opcrdts"
-	"rockscrdtdb/common"
 )
 
 type RawMvDBCRDT struct {
@@ -52,7 +51,7 @@ func UnserializeMvDBCRDT(b []byte) (*MvDBCRDT, bool) {
 	if err != nil {
 		return nil, false
 	}
-	obj,ok := common.FunCRDTUnserializer[rawObj.t]( rawObj.Data)
+	obj,ok := opcrdts.FunCRDTUnserializer[rawObj.t]( rawObj.Data)
 	if ok == false {
 		return nil, false
 	}

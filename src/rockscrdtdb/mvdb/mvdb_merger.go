@@ -1,8 +1,8 @@
 package mvdb
 
 import (
-	"rockscrdtdb/common"
 	"rockscrdtdb/utils"
+	"rockscrdtdb/opcrdts"
 )
 
 type MvDbMerger struct{
@@ -28,7 +28,7 @@ func MvDbFullMerge(key, existingValue []byte, operands [][]byte) ([]byte, bool) 
 	t := key[len(key)-1]
 	obj, ok := UnserializeMvDBCRDT( existingValue)
 	if ! ok {
-		o := common.FunCRDTNew[t]()
+		o := opcrdts.FunCRDTNew[t]()
 		obj = NewMvDBCRDT( o, utils.NewVersionVector())
 	}
 	for _, opB := range operands {

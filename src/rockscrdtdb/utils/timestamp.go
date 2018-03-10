@@ -12,7 +12,7 @@ func NewTimestamp( dc DCId, ts int64) *Timestamp {
 
 // Returns negative is this timestamp is smaller than otherTs,
 // 0 if it is equal and 1 if it is larger
-func (ts Timestamp)CompareTo( otherTs *Timestamp) int {
+func (ts *Timestamp)CompareTo( otherTs *Timestamp) int {
 	if( ts.Ts < otherTs.Ts) {
 		return -1
 	} else if( ts.Ts > otherTs.Ts) {
@@ -21,6 +21,7 @@ func (ts Timestamp)CompareTo( otherTs *Timestamp) int {
 		return ts.Dc.CompareTo(&otherTs.Dc)
 	}
 }
+
 
 
 

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"rockscrdtdb/utils"
 	"rockscrdtdb/opcrdts"
-	"rockscrdtdb/common"
 )
 
 type RawMvDBCRDTOperation struct {
@@ -12,6 +11,7 @@ type RawMvDBCRDTOperation struct {
 	TypeCRDTOp byte
 	Data []byte
 	Vv *utils.VersionVector
+	Ts *utils.Timestamp
 }
 
 func (op *RawMvDBCRDTOperation)serialize() ([]byte, bool) {
@@ -26,12 +26,13 @@ func (op *RawMvDBCRDTOperation)serialize() ([]byte, bool) {
 type MvDBCRDTOperation struct {
 	Op opcrdts.CRDTOperation
 	Vv *utils.VersionVector
+	Ts *utils.Timestamp
 }
 
 func NewMvDBCRDTOperation( Op opcrdts.CRDTOperation, Ts *utils.Timestamp) *MvDBCRDTOperation{
 	vv := utils.NewVersionVector()
 	vv.AddTS(Ts)
-	return &MvDBCRDTOperation{ Op, vv}
+	return &MvDBCRDTOperation{ Op, vv, Ts}
 }
 
 func (op *MvDBCRDTOperation)GetCRDTType() byte {
@@ -43,7 +44,7 @@ func (op *MvDBCRDTOperation)Serialize() ([]byte, bool) {
 	if ok == false {
 		return nil, false
 	}
-	rawOp := RawMvDBCRDTOperation{ op.Op.GetCRDTType(), op.Op.GetType(), b, op.Vv}
+	rawOp := RawMvDBCRDTOperation{ op.Op.GetCRDTType(), op.Op.GetType(), b, op.Vv, op.Ts}
 	b, err := json.Marshal(rawOp)
 	if err != nil {
 		return nil, false
@@ -58,10 +59,9 @@ func UnserializeMvDBCRDTOperation(b []byte) (*MvDBCRDTOperation, bool) {
 	if err != nil {
 		return nil, false
 	}
-	op,ok := common.FunCRDTOpUnserializer[rawOp.TypeCRDT]( rawOp.Data)
+	op,ok := opcrdts.FunCRDTOpUnserializer[rawOp.TypeCRDT]( rawOp.Data)
 	if ok == false {
 		return nil, false
 	}
-	return &MvDBCRDTOperation{ op, rawOp.Vv}, true
+	return &MvDBCRDTOperation{ op, rawOp.Vv, rawOp.Ts}, true
 }
-

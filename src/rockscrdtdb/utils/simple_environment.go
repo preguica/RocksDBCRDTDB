@@ -50,6 +50,9 @@ func (env *SimpleEnvironment) GetCurrentState() *VersionVector {
 // Updates the current state with the given timestamp
 func (env *SimpleEnvironment) UpdateStateTS( ts *Timestamp) {
 	env.State.AddTS( ts)
+	if env.LastTs < ts.Ts {
+		env.LastTs = ts.Ts
+	}
 }
 
 // Updates the current state with the given version vector

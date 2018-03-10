@@ -3,6 +3,7 @@ package utils
 import (
 	"testing"
 	"github.com/facebookgo/ensure"
+	"fmt"
 )
 
 func TestTimestampGeneration(t *testing.T) {
@@ -15,8 +16,8 @@ func TestTimestampGeneration(t *testing.T) {
 	env := SimpleEnvironment{Dc: id}
 	ensure.True(t, env.LastTs == 0)
 
-
 	t1 := env.GetNewTimestamp()
 	t2 := env.GetNewTimestamp()
 	ensure.True(t, t1.CompareTo(t2) < 0)
+	fmt.Println( len(t1.Dc))
 }

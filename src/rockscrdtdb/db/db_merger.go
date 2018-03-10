@@ -1,7 +1,7 @@
 package db
 
 import (
-	"rockscrdtdb/common"
+	"rockscrdtdb/opcrdts"
 )
 
 type DbMerger struct{
@@ -25,12 +25,12 @@ func NewDbMerger() *DbMerger {
 
 func CRDTFullMerge(key, existingValue []byte, operands [][]byte) ([]byte, bool) {
 	t := key[len(key)-1]
-	obj, ok := common.FunCRDTUnserializer[t]( existingValue)
+	obj, ok := opcrdts.FunCRDTUnserializer[t]( existingValue)
 	if ! ok {
-		obj = common.FunCRDTNew[t]()
+		obj = opcrdts.FunCRDTNew[t]()
 	}
 	for _, opB := range operands {
-		op, ok := common.FunCRDTOpUnserializer[t]( opB)
+		op, ok := opcrdts.FunCRDTOpUnserializer[t]( opB)
 		if ! ok {
 			return nil,false
 		}
@@ -46,11 +46,11 @@ func CRDTFullMerge(key, existingValue []byte, operands [][]byte) ([]byte, bool) 
 
 func CRDTPartialMerge(key, leftOperand, rightOperand []byte) ([]byte, bool) {
 	t := key[len(key)-1]
-	leftOp, ok := common.FunCRDTOpUnserializer[t]( leftOperand)
+	leftOp, ok := opcrdts.FunCRDTOpUnserializer[t]( leftOperand)
 	if ok == false {
 		return nil,false
 	}
-	rightOp, ok := common.FunCRDTOpUnserializer[t]( rightOperand)
+	rightOp, ok := opcrdts.FunCRDTOpUnserializer[t]( rightOperand)
 	if ok == false {
 		return nil,false
 	}

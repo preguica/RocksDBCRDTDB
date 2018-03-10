@@ -13,7 +13,7 @@ type CRDTDB struct {
 
 // Opens a database stored in the given filename
 func OpenCRDTDB( dbName string) (*CRDTDB, error) {
-	log, err := common.OpenLog( dbName, NewDbMerger())
+	log, err := common.OpenLog( dbName, true, NewDbMerger())
 	return &CRDTDB{log}, err
 }
 
@@ -33,7 +33,7 @@ func (db *CRDTDB) Get( t byte, key []byte) (*opcrdts.CRDT,error) {
 	if err != nil {
 		return nil,err
 	} else {
-		obj,ok := common.FunCRDTUnserializer[t]( val.Data())
+		obj,ok := opcrdts.FunCRDTUnserializer[t]( val.Data())
 		if ok == false {
 			return nil, errors.New("unserialize error")
 		} else {

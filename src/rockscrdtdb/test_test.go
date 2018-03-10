@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"github.com/facebookgo/ensure"
 	"fmt"
+	"crypto/md5"
+	"crypto/sha1"
 )
 
 type response1 struct {
@@ -32,4 +34,32 @@ func TestTest(t *testing.T) {
 	b,err := json.Marshal( x)
 	ensure.True( t, err == nil)
 	fmt.Println(string(b))
+}
+
+func BenchmarkMDSize10(b *testing.B) {
+	b1 := []byte("0123456789")
+	for i := 0; i < b.N; i++ {
+		md5.Sum(b1)
+	}
+}
+
+func BenchmarkMDSize20(b *testing.B) {
+	b1 := []byte("01234567890123456789")
+	for i := 0; i < b.N; i++ {
+		md5.Sum(b1)
+	}
+}
+
+func BenchmarkSHASize10(b *testing.B) {
+	b1 := []byte("0123456789")
+	for i := 0; i < b.N; i++ {
+		sha1.Sum(b1)
+	}
+}
+
+func BenchmarkSHASize20(b *testing.B) {
+	b1 := []byte("01234567890123456789")
+	for i := 0; i < b.N; i++ {
+		sha1.Sum(b1)
+	}
 }

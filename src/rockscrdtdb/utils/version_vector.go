@@ -30,6 +30,35 @@ func (vv *VersionVector)AddTS( ts *Timestamp) {
 	}
 }
 
+// Returns true if the given Timestamp is reflected in the version vector
+func (vv *VersionVector)IncludedTS( ts *Timestamp) bool {
+	v,ok := vv.Val[ts.Dc]
+	if ok == false {
+		return false
+	}
+	return v >= ts.Ts
+}
+
+// Returns true if this version vector is strictly smaller or equal to the otherVv
+func (vv *VersionVector)SmallerOrEqual( otherVv *VersionVector) bool {
+	if otherVv == nil {
+		return vv.IsEmpty()
+	}
+	for k, v := range vv.Val {
+		otherV, ok := otherVv.Val[k]
+		if ok {
+			if v > otherV {
+				return false
+			}
+		} else {
+			return false
+		}
+	}
+	return true
+}
+
+
+
 // Merge with other version vector, keeping the largest value for each entry
 func (vv *VersionVector)PointwiseMax( otherVv *VersionVector) {
 	if otherVv == nil {
