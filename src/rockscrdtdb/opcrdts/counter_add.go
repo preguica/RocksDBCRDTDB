@@ -37,3 +37,12 @@ func (leftOp *CounterOpAdd) Merge( otherOp CRDTOperation) bool {
 	leftOp.delta += rightOp.delta;
 	return true
 }
+func (cntOp *CounterOpAdd) Apply(obj CRDT) bool {
+	cnt, ok := (obj).(*Counter)
+	if ok == false {
+		return false
+	}
+	cnt.val = cnt.val + cntOp.delta
+	return true
+}
+

@@ -31,7 +31,7 @@ func (vv *VersionVector)AddTS( ts *Timestamp) {
 }
 
 // Returns true if the given Timestamp is reflected in the version vector
-func (vv *VersionVector)IncludedTS( ts *Timestamp) bool {
+func (vv *VersionVector) IncludesTS( ts *Timestamp) bool {
 	v,ok := vv.Val[ts.Dc]
 	if ok == false {
 		return false

@@ -86,4 +86,13 @@ func createOpKey( t byte, ts *utils.Timestamp, key []byte) []byte {
 	return createOpKeyWithBase( t, ts, createKeyBase( key))
 }
 
-
+// Extract timestamp from operation key
+// key = [MD5(key)][CRDT_RESERVED_OPS][8_byte_time][site_id]
+func extractTimestamp( key []byte) (*utils.Timestamp,bool) {
+	if len(key) < md5.Size+9 {
+		return nil, false
+	}
+	str := string(key[md5.Size+9:])
+	v := int64(binary.BigEndian.Uint64(key[md5.Size+1:md5.Size+9]))
+	return utils.NewTimestamp(utils.DCId(str),v), true
+}

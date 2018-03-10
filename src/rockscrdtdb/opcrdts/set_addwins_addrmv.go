@@ -69,6 +69,37 @@ func UnserializeSetAddWinsOpAddRmv(b []byte) (CRDTOperation, bool) {
 	}
 }
 
+func (setOp *SetAddWinsOpAddRmv) Apply(obj0 CRDT) bool {
+	obj, ok := (obj0).(*SetAddWins)
+	if ok == false {
+		return false
+	}
+	if setOp.Adds != nil {
+		for k, v := range setOp.Adds {
+			vv, ok := obj.Vals[k]
+			if ok == false {
+				vv = utils.NewVersionVector()
+				obj.Vals[k] = vv
+			}
+			vv.PointwiseMax( v)
+		}
+	}
+	if setOp.Rmvs != nil {
+		for k, v := range setOp.Rmvs {
+			vv, ok := obj.Vals[k]
+			if ok == true {
+				vv.RemoveIfLargerOrEqual( v)
+				if vv.IsEmpty() {
+					delete(obj.Vals, k)
+				}
+			}
+		}
+	}
+	return true
+}
+
+
+
 func (leftOp *SetAddWinsOpAddRmv) Merge( otherOp CRDTOperation) bool {
 	rightOp, ok := otherOp.(*SetAddWinsOpAddRmv)
 	if ok == false {

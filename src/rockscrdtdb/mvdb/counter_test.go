@@ -14,7 +14,7 @@ func TestMvCounter(t *testing.T) {
 		keyStr = fmt.Sprintf("cnt%d", time.Now().UnixNano())
 		givenKey    = []byte(keyStr)
 	)
-	db, err := OpenCreateIfNotCRDTMvDB("tmp/test.mvdb", true, true)
+	db, err := OpenCreateIfNotCRDTMvDB("tmp/test.mvdb", true, true, 1)
 	ensure.Nil(t, err)
 	defer db.Close()
 
@@ -48,7 +48,7 @@ func TestMvCounterOp(t *testing.T) {
 		keyStr = fmt.Sprintf("cnt%d", time.Now().UnixNano())
 		givenKey    = []byte(keyStr)
 	)
-	db, err := OpenCreateIfNotCRDTMvDB("tmp/test.mvdb", true, true)
+	db, err := OpenCreateIfNotCRDTMvDB("tmp/test.mvdb", true, true, 1)
 	ensure.Nil(t, err)
 	defer db.Close()
 
@@ -75,7 +75,7 @@ func TestMvCounterVersions(t *testing.T) {
 		keyStr = fmt.Sprintf("cnt%d", time.Now().UnixNano())
 		givenKey    = []byte(keyStr)
 	)
-	db, err := OpenCreateIfNotCRDTMvDB("tmp/test.mvdb", true, true)
+	db, err := OpenCreateIfNotCRDTMvDB("tmp/test.mvdb", true, true, 1)
 	ensure.Nil(t, err)
 	defer db.Close()
 
@@ -183,5 +183,13 @@ func TestMvCounterVersions(t *testing.T) {
 	ensure.True(t, ok)
 	ensure.True( t, cnt3.Val() == 7)
 
+	//=======================================================================
+	// Checking the creation of stable
+	db.setStableVersion(vv5)
+	cntRead, err = db.GetVersion(opcrdts.CRDT_OPCOUNTER, givenKey,vv4)
+	ensure.Nil(t, err)
+	cnt3, ok = cntRead.Obj.(*opcrdts.Counter)
+	ensure.True(t, ok)
+	ensure.True( t, cnt3.Val() == 5)
 }
 

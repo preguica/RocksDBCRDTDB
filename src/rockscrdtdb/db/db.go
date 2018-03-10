@@ -45,23 +45,43 @@ func (db *CRDTDB) Get( t byte, key []byte) (*opcrdts.CRDT,error) {
 // Given a key and a opcrdts.CRDT object, stores the object in the database.
 // NOTE: currently, the written object will overwrite previous versions.
 func (db *CRDTDB) Put( key []byte, obj opcrdts.CRDT) error {
+	return db.putImpl( key, obj, db.log)
+}
+
+// Given a key and a opcrdts.CRDT object, stores the object in the database.
+// NOTE: currently, the written object will overwrite previous versions.
+func (db *CRDTDB) putImpl( key []byte, obj opcrdts.CRDT, log common.LogBatchInterface) error {
 	b,ok := obj.Serialize()
 	if ok == false {
 		return errors.New("serialize error")
 	} else {
 		key = createKey( obj.GetType(), key)
-		return db.log.Put(key, b)
+		return log.Put(key, b)
 	}
 }
 
 // Write the given operation for the object key.
 func (db *CRDTDB) PutOp( key []byte, op opcrdts.CRDTOperation) error {
+	return db.putOpImpl( key, op, db.log)
+}
+
+// Write the given operation for the object key.
+func (db *CRDTDB) putOpImpl( key []byte, op opcrdts.CRDTOperation, log common.LogBatchInterface) error {
 	b,ok := op.Serialize()
 	if ok == false  {
 		return errors.New("serialize error")
 	} else {
 		key = createKey( op.GetCRDTType(), key)
-		return db.log.Merge(key, b)
+		return log.Merge(key, b)
 	}
 }
 
+
+func (db *CRDTDB) WriteBatch() *WriteBatch {
+	batch := db.log.WriteBatch()
+	return NewWriteBatch( batch, db)
+}
+
+
+
+//TODO: add delete operation

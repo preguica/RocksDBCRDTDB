@@ -7,11 +7,14 @@ import (
 	"rockscrdtdb/utils"
 	"rockscrdtdb/opcrdts"
 	"github.com/tecbot/gorocksdb"
+	"sync"
+	"fmt"
 )
 
 type CRDTMvDBPreferences struct {
 	StoreLast bool
 	BuildAny bool
+	ThresholdForCreatingStable int
 }
 
 func (obj *CRDTMvDBPreferences)Serialize() ([]byte, bool) {
@@ -48,6 +51,8 @@ func (obj *CRDTMvDBPreferences)Unserialize( b []byte) (bool) {
 type CRDTMvDB struct {
 	log *common.Log
 	prefs *CRDTMvDBPreferences
+	stableVV *utils.VersionVector
+	stableMux sync.Mutex
 }
 
 
@@ -55,7 +60,7 @@ type CRDTMvDB struct {
 // Opens a database stored in the given filename
 // storeLast : true if the last version should be kept for fast access
 // buildAny : true if it should be able to create any version
-func OpenCreateIfNotCRDTMvDB( dbName string, storeLast bool, buildAny bool) (*CRDTMvDB, error) {
+func OpenCreateIfNotCRDTMvDB( dbName string, storeLast bool, buildAny bool, thresholdForCreatingStable int) (*CRDTMvDB, error) {
 	if storeLast == false && buildAny == false {
 		return nil, errors.New("Invalid options for creating a database")
 	}
@@ -68,7 +73,7 @@ func OpenCreateIfNotCRDTMvDB( dbName string, storeLast bool, buildAny bool) (*CR
 		blockOptions.SetFilterPolicy( gorocksdb.NewBloomFilter(10))
 	})
 	b,err := log.Get( []byte("__mvdb_preferences"));
-	prefs := &CRDTMvDBPreferences{storeLast, buildAny}
+	prefs := &CRDTMvDBPreferences{storeLast, buildAny, thresholdForCreatingStable}
 	if b.Data() == nil || err != nil {
 		bb,ok := prefs.Serialize()
 		if ok == false {
@@ -85,7 +90,7 @@ func OpenCreateIfNotCRDTMvDB( dbName string, storeLast bool, buildAny bool) (*CR
 		}
 	}
 
-	return &CRDTMvDB{log, prefs}, err
+	return &CRDTMvDB{log: log, prefs: prefs, stableVV: utils.NewVersionVector()}, err
 }
 
 
@@ -102,13 +107,23 @@ func OpenCRDTMvDB( dbName string) (*CRDTMvDB, error) {
 	} else {
 		prefs.Unserialize(b.Data())
 	}
-	return &CRDTMvDB{log, prefs}, err
+	return &CRDTMvDB{log: log, prefs: prefs, stableVV: utils.NewVersionVector()}, err
 }
 
 // Closes an opened database
 func (db *CRDTMvDB) Close() {
 	defer db.log.Close()
 }
+
+// Set new stable version. No version prior to this one will ever be retrieved.
+func (db *CRDTMvDB) setStableVersion( vv *utils.VersionVector) {
+	db.stableMux.Lock()
+	newStable := utils.NewVersionVectorVV( db.stableVV)
+	newStable.PointwiseMax( vv)
+	db.stableVV = newStable
+	db.stableMux.Unlock()
+}
+
 
 // Returns the latest version. Assume key is preencoded
 func (db *CRDTMvDB) getLatest( t byte, key []byte) (*MvDBCRDT,error) {
@@ -150,15 +165,46 @@ func (db *CRDTMvDB) buildVersion( t byte, key []byte, vv *utils.VersionVector) (
 	it := db.log.NewIterator()
 	defer it.Close()
 	search := createBaseOpKeyWithBase(key)
+	count := 0
+	db.stableMux.Lock()
+	localStableVV := db.stableVV
+	db.stableMux.Unlock()
 	for it.Seek(search); it.ValidForPrefix( search); it.Next() {
-			op, ok := UnserializeMvDBCRDTOperation( it.Value().Data())
-			if ! ok {
-				return nil,errors.New("Cannot unserialize operation : " + string(it.Key().Data()))
+		op, ok := UnserializeMvDBCRDTOperation( it.Value().Data())
+		if ! ok {
+			return nil,errors.New("Cannot unserialize operation : " + string(it.Key().Data()))
+		}
+		if (vv == nil || vv.IncludesTS( op.Ts)) && ! obj.Vv.IncludesTS(op.Ts) {
+			obj.Obj.Apply(op.Op)
+			obj.Vv.PointwiseMax( op.Vv)
+		}
+		if localStableVV.IncludesTS( op.Ts) {
+			count++
+		}
+	}
+	if count >= db.prefs.ThresholdForCreatingStable {
+		if obj.Vv.SmallerOrEqual( localStableVV) {
+			b,ok := obj.Serialize()
+			if ok == true {
+				fmt.Println( "Saving stable")
+				key = createStableKeyWithBase( t, key)
+				go func () {
+					db.log.Put(key, b)
+					it := db.log.NewIterator()
+					defer it.Close()
+					search := createBaseOpKeyWithBase(key)
+					for it.Seek(search); it.ValidForPrefix( search); it.Next() {
+						ets, eok := extractTimestamp( it.Key().Data())
+						if eok && localStableVV.IncludesTS( ets) {
+							db.log.Delete( it.Key().Data())
+						}
+					}
+				}()
 			}
-			if (vv == nil || vv.IncludedTS( op.Ts)) && ! obj.Vv.IncludedTS(op.Ts) {
-				obj.Obj.Apply(op.Op)
-				obj.Vv.PointwiseMax( op.Vv)
-			}
+		}
+		//TODO: build stable version when built version is no good
+		// the problem is to guarantee that there will be not multiple tries for
+		// creating the stable version for the same object
 	}
 	return obj, nil
 }
@@ -192,42 +238,69 @@ func (db *CRDTMvDB) GetVersion( t byte, key []byte, vv *utils.VersionVector) (*M
 	return db.buildVersion( t, keybase, vv)
 }
 
+
 // Given a key and a opcrdts.CRDT object, stores the object in the database.
 // NOTE: currently, the written object will overwrite previous versions.
 func (db *CRDTMvDB) Put( key []byte, obj *MvDBCRDT) error {
+	return db.putImpl( key, obj, db.log)
+}
+
+// Given a key and a opcrdts.CRDT object, stores the object in the database.
+// NOTE: currently, the written object will overwrite previous versions.
+func (db *CRDTMvDB) putImpl( key []byte, obj *MvDBCRDT, log common.LogBatchInterface) error {
 	b,ok := obj.Serialize()
 	if ok == false {
 		return errors.New("serialize error")
 	} else {
 		key = createKey( obj.Obj.GetType(), key)
-		return db.log.Put(key, b)
+		return log.Put(key, b)
 	}
 }
 
 // Write the given operation for the object key.
 func (db *CRDTMvDB) PutOp( key []byte, op *MvDBCRDTOperation) error {
-	// TODO: this should run in a transaction
-	var err error
-	key = createKeyBase( key)
-	if db.prefs.StoreLast {
-		b, ok := op.Serialize()
-		if ok == false {
-			return errors.New("serialize error")
+	if ! ( db.prefs.StoreLast && db.prefs.BuildAny) {
+		return db.putOpImpl( key, op, db.log)
+	} else {
+		batch := db.log.WriteBatch()
+		defer batch.Destroy()
+		err := db.putOpImpl( key, op, batch)
+		if err != nil {
+			return err
 		}
-		dbkey := createKeyWithBase(op.GetCRDTType(), key)
-		err = db.log.Merge(dbkey, b)
+		return db.log.RunBatch( batch)
+
 	}
-	if db.prefs.BuildAny {
-		b, ok := op.Serialize()
-		if ok == false {
-			return errors.New("serialize error")
-		}
-		dbkey := createOpKeyWithBase(op.GetCRDTType(), op.Ts, key)
-		err2 := db.log.Put(dbkey, b)
-		if err == nil {
-			err = err2
-		}
-	}
-	return err
 }
 
+// Write the given operation for the object key.
+func (db *CRDTMvDB) putOpImpl( key []byte, op *MvDBCRDTOperation, log common.LogBatchInterface) error {
+	key = createKeyBase( key)
+	b, ok := op.Serialize()
+	if ok == false {
+		return errors.New("serialize error")
+	}
+	if db.prefs.StoreLast {
+		dbkey := createKeyWithBase(op.GetCRDTType(), key)
+		err := log.Merge(dbkey, b)
+		if err != nil {
+			return err
+		}
+	}
+	if db.prefs.BuildAny {
+		dbkey := createOpKeyWithBase(op.GetCRDTType(), op.Ts, key)
+		err := log.Put(dbkey, b)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (db *CRDTMvDB) WriteBatch() *WriteBatch {
+	batch := db.log.WriteBatch()
+	return NewWriteBatch( batch, db)
+}
+
+
+//TODO: add delete operations

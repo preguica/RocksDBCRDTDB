@@ -5,4 +5,5 @@ type CRDTOperation interface {
 	GetType() byte
 	Merge(CRDTOperation) bool
 	Serialize() ([]byte, bool)
+	Apply(CRDT) bool
 }
