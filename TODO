@@ -1,0 +1,34 @@
+=====================================================================================
+MUST HAVE: CRDTs
+=====================================================================================
+SetAddWins - split operation into add, rmv, clear
+Counter - add set operation
+SetGrowOnly - create
+LWW register - create
+MV register - create
+log CRDT: just maintains a list of operations - create
+Micro-benchmarks for CRDT types
+
+
+=====================================================================================
+MUST HAVE: system
+=====================================================================================
+Delete operation
+Macro-benchmark
+
+
+=====================================================================================
+NICE TO HAVE: CRDTs
+=====================================================================================
+FlagEnableWins - create
+FlagDisableWins - create
+Maps - create
+Treedoc - create
+
+
+=====================================================================================
+NICE TO HAVE stuff
+=====================================================================================
+Better solution to create stable snapshot
+Server with REST interface
+Server with protobuf interface
