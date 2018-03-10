@@ -130,30 +130,39 @@ func TestMvCounterVersions(t *testing.T) {
 	ensure.NotNil(t,vv3)
 
 	//=======================================================================
+	// Retrieving latest version -- value should be 7
 	cntRead, err := db.Get(opcrdts.CRDT_OPCOUNTER, givenKey)
 	ensure.Nil(t, err)
 	cnt3, ok := cntRead.Obj.(*opcrdts.Counter)
 	ensure.True(t, ok)
 	ensure.True( t, cnt3.Val() == 7)
 
+	//=======================================================================
+	// Retrieving version with [ts1 0] -- value should be 1
 	cntRead, err = db.GetVersion(opcrdts.CRDT_OPCOUNTER, givenKey, vv1)
 	ensure.Nil(t, err)
 	cnt3, ok = cntRead.Obj.(*opcrdts.Counter)
 	ensure.True(t, ok)
 	ensure.True( t, cnt3.Val() == 1)
 
+	//=======================================================================
+	// Retrieving version with [ts2 0] -- value should be 3
 	cntRead, err = db.GetVersion(opcrdts.CRDT_OPCOUNTER, givenKey,vv2)
 	ensure.Nil(t, err)
 	cnt3, ok = cntRead.Obj.(*opcrdts.Counter)
 	ensure.True(t, ok)
 	ensure.True( t, cnt3.Val() == 3)
 
+	//=======================================================================
+	// Retrieving version with [0 ts3] -- value should be 4
 	cntRead, err = db.GetVersion(opcrdts.CRDT_OPCOUNTER, givenKey,vv3)
 	ensure.Nil(t, err)
 	cnt3, ok = cntRead.Obj.(*opcrdts.Counter)
 	ensure.True(t, ok)
 	ensure.True( t, cnt3.Val() == 4)
 
+	//=======================================================================
+	// Retrieving version with [ts1 ts3] -- value should be 5
 	vv4 := utils.NewVersionVector()
 	vv4.AddTS(ts1)
 	vv4.AddTS(ts3)
@@ -162,6 +171,17 @@ func TestMvCounterVersions(t *testing.T) {
 	cnt3, ok = cntRead.Obj.(*opcrdts.Counter)
 	ensure.True(t, ok)
 	ensure.True( t, cnt3.Val() == 5)
+
+	//=======================================================================
+	// Retrieving version with [ts2 ts3] -- value should be 7
+	vv5 := utils.NewVersionVector()
+	vv5.AddTS(ts2)
+	vv5.AddTS(ts3)
+	cntRead, err = db.GetVersion(opcrdts.CRDT_OPCOUNTER, givenKey,vv5)
+	ensure.Nil(t, err)
+	cnt3, ok = cntRead.Obj.(*opcrdts.Counter)
+	ensure.True(t, ok)
+	ensure.True( t, cnt3.Val() == 7)
 
 }
 
