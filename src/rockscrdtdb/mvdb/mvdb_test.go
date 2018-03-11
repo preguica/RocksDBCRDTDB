@@ -15,10 +15,10 @@ func TestSerializationOfCounterOp(t *testing.T) {
 	env := utils.NewSimpleEnvironment(utils.DCId("dc1"))
 	env.UpdateStateTS( env.GetNewTimestamp())
 
-//	vv := env.GetCurrentState()
+	vv := env.GetCurrentState()
 	ts := env.GetNewTimestamp()
 
-	op := opcrdts.NewCounterOpAdd(3)
+	op := opcrdts.NewCounterOpAdd( ts, vv, 3)
 
 	mvOp := NewMvDBCRDTOperation( op, ts)
 	b,ok := mvOp.Serialize();

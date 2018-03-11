@@ -47,11 +47,11 @@ func (op *SetAddWinsOpAddRmv) RmvElem( ts *utils.Timestamp, vv *utils.VersionVec
 
 
 func (op *SetAddWinsOpAddRmv) GetCRDTType() byte {
-	return CRDT_OPSET_ADDWINS
+	return CRDT_SET_ADDWINS
 }
 
 func (op *SetAddWinsOpAddRmv) GetType() byte {
-	return CRDT_OPSET_ADDWINS_ADDRMV
+	return CRDT_OPSET_ADDWINS__ADDRMV
 }
 
 func (op *SetAddWinsOpAddRmv) Serialize()  ([]byte, bool) {
@@ -104,34 +104,34 @@ func (setOp *SetAddWinsOpAddRmv) Apply(obj0 CRDT) bool {
 
 
 
-func (leftOp *SetAddWinsOpAddRmv) Merge( otherOp CRDTOperation) bool {
+func (leftOp *SetAddWinsOpAddRmv) Merge( otherOp CRDTOperation) (CRDTOperation, bool) {
 	rightOp, ok := otherOp.(*SetAddWinsOpAddRmv)
-	if ok == false {
-		return false
-	}
-	if leftOp.Adds != nil && rightOp.Adds != nil{
-		for k, v := range rightOp.Adds {
-			vv, ok := leftOp.Adds[k]
-			if ok == false {
-				leftOp.Adds[k] = v
-			} else {
-				vv.PointwiseMax(v)
+	if ok == true {
+		if leftOp.Adds != nil && rightOp.Adds != nil {
+			for k, v := range rightOp.Adds {
+				vv, ok := leftOp.Adds[k]
+				if ok == false {
+					leftOp.Adds[k] = v
+				} else {
+					vv.PointwiseMax(v)
+				}
 			}
+		} else if leftOp.Adds == nil {
+			leftOp.Adds = rightOp.Adds
 		}
-	} else if leftOp.Adds == nil {
-		leftOp.Adds = rightOp.Adds
-	}
-	if leftOp.Rmvs != nil && rightOp.Rmvs != nil{
-		for k, v := range rightOp.Rmvs {
-			vv, ok := leftOp.Rmvs[k]
-			if ok == false {
-				leftOp.Rmvs[k] = v
-			} else {
-				vv.PointwiseMax(v)
+		if leftOp.Rmvs != nil && rightOp.Rmvs != nil {
+			for k, v := range rightOp.Rmvs {
+				vv, ok := leftOp.Rmvs[k]
+				if ok == false {
+					leftOp.Rmvs[k] = v
+				} else {
+					vv.PointwiseMax(v)
+				}
 			}
+		} else if leftOp.Rmvs == nil {
+			leftOp.Rmvs = rightOp.Rmvs
 		}
-	} else if leftOp.Rmvs == nil {
-		leftOp.Rmvs = rightOp.Rmvs
+		return leftOp, true
 	}
-	return true
+	return leftOp, false
 }

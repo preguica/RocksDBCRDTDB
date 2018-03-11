@@ -1,7 +1,7 @@
 =====================================================================================
 MUST HAVE: CRDTs
 =====================================================================================
-SetAddWins - split operation into add, rmv, clear
+SetAddWins - add clear
 Counter - add set operation
 SetGrowOnly - create
 LWW register - create

@@ -26,6 +26,8 @@ func (ts *Timestamp)CompareTo( otherTs *Timestamp) int {
 	}
 }
 
-
+func (ts *Timestamp)SmallerThan( otherTs *Timestamp) bool {
+	return ts.CompareTo(otherTs) <  0
+}
 
 

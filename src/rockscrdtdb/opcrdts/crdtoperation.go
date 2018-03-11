@@ -7,7 +7,7 @@ package opcrdts
 type CRDTOperation interface {
 	GetCRDTType() byte
 	GetType() byte
-	Merge(CRDTOperation) bool
+	Merge(CRDTOperation) (CRDTOperation, bool)
 	Serialize() ([]byte, bool)
 	Apply(CRDT) bool
 }

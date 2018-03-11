@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func TestMvCounter(t *testing.T) {
+func TestMvInteger(t *testing.T) {
 	var (
 		keyStr = fmt.Sprintf("cnt%d", time.Now().UnixNano())
 		givenKey    = []byte(keyStr)
@@ -20,7 +20,8 @@ func TestMvCounter(t *testing.T) {
 
 	env := utils.NewSimpleEnvironment(utils.DCId("dc1"))
 
-	cnt := opcrdts.NewCounter()
+	cnt := opcrdts.NewInteger()
+
 	ts := env.GetNewTimestamp()
 	vv := env.GetCurrentState()
 	op := cnt.Add(ts, vv, 1)
@@ -31,9 +32,9 @@ func TestMvCounter(t *testing.T) {
 	err = db.Put(givenKey, mvOp)
 	ensure.Nil(t, err)
 
-	cntRead, err := db.Get(opcrdts.CRDT_COUNTER, givenKey)
+	cntRead, err := db.Get(opcrdts.CRDT_INTEGER, givenKey)
 	ensure.Nil(t, err)
-	cnt3, ok := cntRead.Obj.(*opcrdts.Counter)
+	cnt3, ok := cntRead.Obj.(*opcrdts.Integer)
 	ensure.True(t, ok)
 	ensure.True( t, cnt3.Value() == 1)
 
@@ -43,7 +44,7 @@ func TestMvCounter(t *testing.T) {
 
 }
 
-func TestMvCounterOp(t *testing.T) {
+func TestMvIntegerOp(t *testing.T) {
 	var (
 		keyStr = fmt.Sprintf("cnt%d", time.Now().UnixNano())
 		givenKey    = []byte(keyStr)
@@ -54,7 +55,7 @@ func TestMvCounterOp(t *testing.T) {
 
 	env := utils.NewSimpleEnvironment(utils.DCId("dc1"))
 
-	cnt := opcrdts.NewCounter()
+	cnt := opcrdts.NewInteger()
 	ts := env.GetNewTimestamp()
 	vv := env.GetCurrentState()
 	op := cnt.Add(ts, vv, 1)
@@ -63,14 +64,14 @@ func TestMvCounterOp(t *testing.T) {
 	err = db.PutOp(givenKey, mvOp)
 	ensure.Nil(t, err)
 
-	cntRead, err := db.Get(opcrdts.CRDT_COUNTER, givenKey)
+	cntRead, err := db.Get(opcrdts.CRDT_INTEGER, givenKey)
 	ensure.Nil(t, err)
-	cnt3, ok := cntRead.Obj.(*opcrdts.Counter)
+	cnt3, ok := cntRead.Obj.(*opcrdts.Integer)
 	ensure.True(t, ok)
 	ensure.True( t, cnt3.Value() == 1)
 }
 
-func TestMvCounterVersions(t *testing.T) {
+func TestMvIntegerVersions(t *testing.T) {
 	var (
 		keyStr = fmt.Sprintf("cnt%d", time.Now().UnixNano())
 		givenKey    = []byte(keyStr)
@@ -80,7 +81,7 @@ func TestMvCounterVersions(t *testing.T) {
 	defer db.Close()
 
 	env1 := utils.NewSimpleEnvironment(utils.DCId("dc1"))
-	cnt1 := opcrdts.NewCounter()
+	cnt1 := opcrdts.NewInteger()
 	vv := env1.GetCurrentState()
 
 	//=======================================================================
@@ -113,7 +114,7 @@ func TestMvCounterVersions(t *testing.T) {
 	//=======================================================================
 	//=======================================================================
 	env2 := utils.NewSimpleEnvironment(utils.DCId("dc2"))
-	cnt2 := opcrdts.NewCounter()
+	cnt2 := opcrdts.NewInteger()
 	vv = env2.GetCurrentState()
 
 	//=======================================================================
@@ -131,33 +132,33 @@ func TestMvCounterVersions(t *testing.T) {
 
 	//=======================================================================
 	// Retrieving latest version -- value should be 7
-	cntRead, err := db.Get(opcrdts.CRDT_COUNTER, givenKey)
+	cntRead, err := db.Get(opcrdts.CRDT_INTEGER, givenKey)
 	ensure.Nil(t, err)
-	cnt3, ok := cntRead.Obj.(*opcrdts.Counter)
+	cnt3, ok := cntRead.Obj.(*opcrdts.Integer)
 	ensure.True(t, ok)
 	ensure.True( t, cnt3.Value() == 7)
 
 	//=======================================================================
 	// Retrieving version with [ts1 0] -- value should be 1
-	cntRead, err = db.GetVersion(opcrdts.CRDT_COUNTER, givenKey, vv1)
+	cntRead, err = db.GetVersion(opcrdts.CRDT_INTEGER, givenKey, vv1)
 	ensure.Nil(t, err)
-	cnt3, ok = cntRead.Obj.(*opcrdts.Counter)
+	cnt3, ok = cntRead.Obj.(*opcrdts.Integer)
 	ensure.True(t, ok)
 	ensure.True( t, cnt3.Value() == 1)
 
 	//=======================================================================
 	// Retrieving version with [ts2 0] -- value should be 3
-	cntRead, err = db.GetVersion(opcrdts.CRDT_COUNTER, givenKey,vv2)
+	cntRead, err = db.GetVersion(opcrdts.CRDT_INTEGER, givenKey,vv2)
 	ensure.Nil(t, err)
-	cnt3, ok = cntRead.Obj.(*opcrdts.Counter)
+	cnt3, ok = cntRead.Obj.(*opcrdts.Integer)
 	ensure.True(t, ok)
 	ensure.True( t, cnt3.Value() == 3)
 
 	//=======================================================================
 	// Retrieving version with [0 ts3] -- value should be 4
-	cntRead, err = db.GetVersion(opcrdts.CRDT_COUNTER, givenKey,vv3)
+	cntRead, err = db.GetVersion(opcrdts.CRDT_INTEGER, givenKey,vv3)
 	ensure.Nil(t, err)
-	cnt3, ok = cntRead.Obj.(*opcrdts.Counter)
+	cnt3, ok = cntRead.Obj.(*opcrdts.Integer)
 	ensure.True(t, ok)
 	ensure.True( t, cnt3.Value() == 4)
 
@@ -166,9 +167,9 @@ func TestMvCounterVersions(t *testing.T) {
 	vv4 := utils.NewVersionVector()
 	vv4.AddTS(ts1)
 	vv4.AddTS(ts3)
-	cntRead, err = db.GetVersion(opcrdts.CRDT_COUNTER, givenKey,vv4)
+	cntRead, err = db.GetVersion(opcrdts.CRDT_INTEGER, givenKey,vv4)
 	ensure.Nil(t, err)
-	cnt3, ok = cntRead.Obj.(*opcrdts.Counter)
+	cnt3, ok = cntRead.Obj.(*opcrdts.Integer)
 	ensure.True(t, ok)
 	ensure.True( t, cnt3.Value() == 5)
 
@@ -177,18 +178,18 @@ func TestMvCounterVersions(t *testing.T) {
 	vv5 := utils.NewVersionVector()
 	vv5.AddTS(ts2)
 	vv5.AddTS(ts3)
-	cntRead, err = db.GetVersion(opcrdts.CRDT_COUNTER, givenKey,vv5)
+	cntRead, err = db.GetVersion(opcrdts.CRDT_INTEGER, givenKey,vv5)
 	ensure.Nil(t, err)
-	cnt3, ok = cntRead.Obj.(*opcrdts.Counter)
+	cnt3, ok = cntRead.Obj.(*opcrdts.Integer)
 	ensure.True(t, ok)
 	ensure.True( t, cnt3.Value() == 7)
 
 	//=======================================================================
 	// Checking the creation of stable
 	db.setStableVersion(vv)
-	cntRead, err = db.GetVersion(opcrdts.CRDT_COUNTER, givenKey,vv4)
+	cntRead, err = db.GetVersion(opcrdts.CRDT_INTEGER, givenKey,vv4)
 	ensure.Nil(t, err)
-	cnt3, ok = cntRead.Obj.(*opcrdts.Counter)
+	cnt3, ok = cntRead.Obj.(*opcrdts.Integer)
 	ensure.True(t, ok)
 	ensure.True( t, cnt3.Value() == 5)
 }

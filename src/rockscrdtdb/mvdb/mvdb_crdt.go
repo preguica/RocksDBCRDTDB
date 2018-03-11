@@ -11,7 +11,7 @@ import (
 )
 
 type RawMvDBCRDT struct {
-	t byte
+	T byte
 	Data []byte
 	Vv *utils.VersionVector
 }
@@ -55,7 +55,7 @@ func UnserializeMvDBCRDT(b []byte) (*MvDBCRDT, bool) {
 	if err != nil {
 		return nil, false
 	}
-	obj,ok := opcrdts.FunCRDTUnserializer[rawObj.t]( rawObj.Data)
+	obj,ok := opcrdts.FunCRDTUnserializer[rawObj.T]( rawObj.Data)
 	if ok == false {
 		return nil, false
 	}

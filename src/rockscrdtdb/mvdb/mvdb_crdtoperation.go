@@ -63,7 +63,7 @@ func UnserializeMvDBCRDTOperation(b []byte) (*MvDBCRDTOperation, bool) {
 	if err != nil {
 		return nil, false
 	}
-	op,ok := opcrdts.FunCRDTOpUnserializer[rawOp.TypeCRDT]( rawOp.Data)
+	op,ok := opcrdts.FunCRDTOpUnserializer[rawOp.TypeCRDT][rawOp.TypeCRDTOp]( rawOp.Data)
 	if ok == false {
 		return nil, false
 	}

@@ -15,6 +15,6 @@ func TestCounterSimpleOp(t *testing.T) {
 	ensure.True(t, ok)
 	ok = cnt.Apply(cnt.Add(nil,nil, 1))
 	ensure.True(t, ok)
-	ensure.True( t, cnt.val == 14)
+	ensure.True( t, cnt.Val == 14)
 }
 

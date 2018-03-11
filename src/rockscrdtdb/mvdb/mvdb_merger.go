@@ -60,10 +60,11 @@ func MvDbPartialMerge(key, leftOperand, rightOperand []byte) ([]byte, bool) {
 	if ok == false {
 		return nil,false
 	}
-	ok = leftOp.Op.Merge(rightOp.Op)
+	newOp, ok := leftOp.Op.Merge(rightOp.Op)
 	if ok == false {
 		return nil, false
 	} else {
+		leftOp.Op = newOp
 		leftOp.Vv.PointwiseMax( rightOp.Vv)
 		return leftOp.Serialize()
 	}

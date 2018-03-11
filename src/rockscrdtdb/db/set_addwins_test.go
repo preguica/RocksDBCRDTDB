@@ -109,7 +109,7 @@ func HelperTestSetAddWinsRocks(t *testing.T, doPut bool) {
 		err = db.PutOp(givenKey, op1)
 	}
 	env1.UpdateStateTS(ts1)
-	rep1Read,err := db.Get(opcrdts.CRDT_OPSET_ADDWINS, givenKey)
+	rep1Read,err := db.Get(opcrdts.CRDT_SET_ADDWINS, givenKey)
 	ensure.Nil(t, err)
 
 	rep1r, ok := (*rep1Read).(*opcrdts.SetAddWins)
@@ -127,7 +127,7 @@ func HelperTestSetAddWinsRocks(t *testing.T, doPut bool) {
 	ensure.Nil(t, err)
 	env1.UpdateStateTS(ts2)
 
-	rep1Read,err = db.Get(opcrdts.CRDT_OPSET_ADDWINS, givenKey)
+	rep1Read,err = db.Get(opcrdts.CRDT_SET_ADDWINS, givenKey)
 	ensure.Nil(t, err)
 
 	rep1r, ok = (*rep1Read).(*opcrdts.SetAddWins)
@@ -170,7 +170,7 @@ func HelperTestRemove(t *testing.T, doPut bool) {
 		err = db.PutOp(givenKey, op1)
 	}
 	env.UpdateStateTS(ts1)
-	rep1Read,err := db.Get(opcrdts.CRDT_OPSET_ADDWINS, givenKey)
+	rep1Read,err := db.Get(opcrdts.CRDT_SET_ADDWINS, givenKey)
 	ensure.Nil(t, err)
 
 	rep1r, ok := (*rep1Read).(*opcrdts.SetAddWins)
@@ -185,7 +185,7 @@ func HelperTestRemove(t *testing.T, doPut bool) {
 	ensure.Nil(t, err)
 	env.UpdateStateTS(tsRmv1)
 
-	rep1Read,err = db.Get(opcrdts.CRDT_OPSET_ADDWINS, givenKey)
+	rep1Read,err = db.Get(opcrdts.CRDT_SET_ADDWINS, givenKey)
 	ensure.Nil(t, err)
 	rep1r, ok = (*rep1Read).(*opcrdts.SetAddWins)
 	ensure.True(t, ok)
@@ -225,7 +225,7 @@ func HelperConcurrentAddRmvRocks(t *testing.T, doPut bool) {
 		err = db.PutOp(givenKey, op1)
 	}
 	env.UpdateStateTS(ts1)
-	rep1Read,err := db.Get(opcrdts.CRDT_OPSET_ADDWINS, givenKey)
+	rep1Read,err := db.Get(opcrdts.CRDT_SET_ADDWINS, givenKey)
 	ensure.Nil(t, err)
 
 	rep1r, ok := (*rep1Read).(*opcrdts.SetAddWins)
@@ -251,7 +251,7 @@ func HelperConcurrentAddRmvRocks(t *testing.T, doPut bool) {
 	ensure.Nil(t, err)
 	env.UpdateStateTS(tsAdd1)
 
-	rep1Read,err = db.Get(opcrdts.CRDT_OPSET_ADDWINS, givenKey)
+	rep1Read,err = db.Get(opcrdts.CRDT_SET_ADDWINS, givenKey)
 	ensure.Nil(t, err)
 	rep1r, ok = (*rep1Read).(*opcrdts.SetAddWins)
 	ensure.True(t, ok)
@@ -261,7 +261,7 @@ func HelperConcurrentAddRmvRocks(t *testing.T, doPut bool) {
 	ensure.Nil(t, err)
 	env.UpdateStateTS(tsAdd2)
 
-	rep1Read,err = db.Get(opcrdts.CRDT_OPSET_ADDWINS, givenKey)
+	rep1Read,err = db.Get(opcrdts.CRDT_SET_ADDWINS, givenKey)
 	ensure.Nil(t, err)
 	rep1r, ok = (*rep1Read).(*opcrdts.SetAddWins)
 	ensure.True(t, ok)
@@ -272,7 +272,7 @@ func HelperConcurrentAddRmvRocks(t *testing.T, doPut bool) {
 	opRmv2 := rep.Rmv( tsRmv2, stateVV, value)
 	err = db.PutOp(givenKey, opRmv2)
 
-	rep1Read,err = db.Get(opcrdts.CRDT_OPSET_ADDWINS, givenKey)
+	rep1Read,err = db.Get(opcrdts.CRDT_SET_ADDWINS, givenKey)
 	ensure.Nil(t, err)
 	rep1r, ok = (*rep1Read).(*opcrdts.SetAddWins)
 	ensure.True(t, ok)

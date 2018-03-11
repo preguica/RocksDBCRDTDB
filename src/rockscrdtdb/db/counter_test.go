@@ -27,7 +27,7 @@ func TestDBCounter(t *testing.T) {
 	err = db.Put(givenKey, cnt)
 	ensure.Nil(t, err)
 
-	cntRead,err := db.Get(opcrdts.CRDT_OPCOUNTER, givenKey)
+	cntRead,err := db.Get(opcrdts.CRDT_COUNTER, givenKey)
 	ensure.Nil(t, err)
 
 
@@ -40,12 +40,12 @@ func TestDBCounter(t *testing.T) {
 	err = db.PutOp(givenKey, cnt2.Add(&utils.Timestamp{}, &utils.VersionVector{},2))
 	ensure.Nil(t, err)
 
-	cntRead, err = db.Get(opcrdts.CRDT_OPCOUNTER, givenKey)
+	cntRead, err = db.Get(opcrdts.CRDT_COUNTER, givenKey)
 	ensure.Nil(t, err)
 
 	cnt3, ok := (*cntRead).(*opcrdts.Counter)
 	ensure.True(t, ok)
-	ensure.True( t, cnt3.Val() == cnt.Val() + 1 + 2)
+	ensure.True( t, cnt3.Value() == cnt.Value() + 1 + 2)
 
 	//	value, err := db.Get(givenKey)
 	//	defer value.Free()
@@ -62,7 +62,7 @@ func TestCounterNoPut(t *testing.T) {
 	ensure.Nil(t, err)
 	defer db.Close()
 
-	cntRead,err := db.Get(opcrdts.CRDT_OPCOUNTER, givenKey)
+	cntRead,err := db.Get(opcrdts.CRDT_COUNTER, givenKey)
 	ensure.Err(t, err, regexp.MustCompile("(does not exist)"))
 
 	cnt := opcrdts.NewCounter()
@@ -72,12 +72,12 @@ func TestCounterNoPut(t *testing.T) {
 	err = db.PutOp(givenKey, cnt.Add(nil, nil, 2))
 	ensure.Nil(t, err)
 
-	cntRead, err = db.Get(opcrdts.CRDT_OPCOUNTER, givenKey)
+	cntRead, err = db.Get(opcrdts.CRDT_COUNTER, givenKey)
 	ensure.Nil(t, err)
 
 	cnt3, ok := (*cntRead).(*opcrdts.Counter)
 	ensure.True(t, ok)
-	ensure.True( t, cnt3.Val() == 1 + 2)
+	ensure.True( t, cnt3.Value() == 1 + 2)
 
 	//	value, err := db.Get(givenKey)
 	//	defer value.Free()

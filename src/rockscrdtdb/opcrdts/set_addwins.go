@@ -48,7 +48,7 @@ func (obj *SetAddWins) Contains( val []byte) bool {
 }
 
 func (obj *SetAddWins) GetType() byte {
-	return CRDT_OPSET_ADDWINS
+	return CRDT_SET_ADDWINS
 }
 
 func (obj *SetAddWins) ToString() string {
